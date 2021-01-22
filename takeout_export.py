@@ -27,9 +27,6 @@ import zipfile
 from time import time
 from datetime import datetime, timedelta
 
-# TODO: delete files when copy is done
-# TODO: error if last date is too long ago
-
 if len(sys.argv) < 3:
   sys.exit(
     """usage: %s src dst
@@ -142,7 +139,6 @@ for fname in src_files:
 # isn't necessary, but it seems safer
 for fname in src_files:
   os.unlink(fname)
-  pass
 
 elapsed = time() - start
 
