@@ -1,3 +1,21 @@
+"""
+
+Google Takeout (https://takeout.google.com/) is a tool to export all of your
+Google data (photos, mail, comments, etc).  It can save the export into your
+Google Drive, and can be scheduled to run every 2 months for a year.
+
+This script has two purposes:
+
+1. Unzip the exported zip files from Google Drive into a non-Drive location, so
+   that an incremental backup can pickup just the differences.  The source files
+   can then be deleted from Google Drive to free up space.
+2. Report an error if its been more than 2 months since the last export.  This
+   ensures I won't forget to re-start the export process after it expires.
+
+Usage:
+
+"""
+
 
 import os
 import sys
@@ -14,7 +32,9 @@ def validate_and_get_timestamp(src_files):
   zip_ts_candidates = set()
   part_num = []
 
+  # foo/bar/takeout-20210122T074607Z-001.zi -> 20210122T074607Z
   ts_re = re.compile(".*/takeout-([0-9TZ]*)-\d+\.zip$")
+  # foo/bar/something-123.mp4 -> 123
   part_num_re = re.compile(".*/.*-(\d{3})\.\w+$")
 
   for fname in src_files:
@@ -89,10 +109,11 @@ for fname in src_files:
     print("Copying {}".format(fname))
     all_files.append(fname)
     total_size += os.path.getsize(fname)
+    # could be move, but makes testing easier
     shutil.copy(fname, dest_dir)
 
-# only delete if we've successfully copied everything
-# most of the time this isn't necessary, but it seems safer
+# only delete if we've successfully copied everything most of the time this
+# isn't necessary, but it seems safer
 for fname in src_files:
   #os.unlink(fname)
   pass
