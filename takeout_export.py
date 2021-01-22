@@ -115,7 +115,7 @@ for fname in src_files:
 # only delete if we've successfully copied everything most of the time this
 # isn't necessary, but it seems safer
 for fname in src_files:
-  #os.unlink(fname)
+  os.unlink(fname)
   pass
 
 elapsed = time() - start
