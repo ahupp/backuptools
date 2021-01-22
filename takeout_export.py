@@ -13,6 +13,7 @@ This script has two purposes:
    ensures I won't forget to re-start the export process after it expires.
 
 Usage:
+python3 ./takeout_export.py Google\ Drive/Takeout /some/destination/folder
 
 """
 
@@ -24,9 +25,43 @@ import re
 import shutil
 import zipfile
 from time import time
+from datetime import datetime, timedelta
 
 # TODO: delete files when copy is done
 # TODO: error if last date is too long ago
+
+if len(sys.argv) < 3:
+  sys.exit(
+    """usage: %s src dst
+    src: a folder that recieves Takeout zip files, like Google Drive
+    dst: the destination to unpack into""" % sys.argv[0])
+
+takeout_src = sys.argv[1]
+takeout_dst_root = sys.argv[2]
+
+def dest_dir_timestamps():
+  # return [(parsed timestamp, dir name), ...]
+  ret = []
+  ts_re = re.compile("^([0-9T]+)T")
+  for d in os.listdir(takeout_dst_root):
+    m = ts_re.match(d)
+    if m:
+      ts_str = m.group(1)
+      ts = datetime.strptime(ts_str, "%Y%m%d")
+      ret.append((ts, os.path.join(takeout_dst_root, d)))
+  return ret
+
+def validate_time_since_last_export():
+  dts = dest_dir_timestamps()
+  if not dts:
+    return
+  dts.sort(key=lambda i: i[0])
+  (most_recent_ts, most_recent_dir) = dts.pop()
+  elapsed = datetime.now() - most_recent_ts
+  limit = timedelta(weeks=9)
+  if elapsed > limit:
+    sys.exit("More than 2 months elapsed since last export, last is {}".format(most_recent_dir))
+
 
 def validate_and_get_timestamp(src_files):
   zip_ts_candidates = set()
@@ -62,7 +97,8 @@ def validate_and_get_timestamp(src_files):
       # but lets be conservative.
       sys.exit("Found source files, but no timestamps")
     else:
-      # nothing to do
+      validate_time_since_last_export()
+      # if we get here, nothing to do
       sys.exit(0)
 
   if len(zip_ts_candidates) > 1:
@@ -71,16 +107,6 @@ def validate_and_get_timestamp(src_files):
         repr(zip_ts_candidates)))
 
   return zip_ts_candidates.pop()
-
-
-if len(sys.argv) < 3:
-  sys.exit(
-    """usage: %s src dst
-    src: a folder that recieves Takout zip files
-    dst: the destination to unpack into""" % sys.argv[0])
-
-takeout_src = sys.argv[1]
-takeout_dst_root = sys.argv[2]
 
 start = time()
 
