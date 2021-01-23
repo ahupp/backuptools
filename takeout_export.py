@@ -107,7 +107,13 @@ def validate_and_get_timestamp(src_files):
 
 start = time()
 
-src_files = [os.path.join(takeout_src, i) for i in os.listdir(takeout_src)]
+if os.path.exists(takeout_src):
+  src_files = [os.path.join(takeout_src, i) for i in os.listdir(takeout_src)]
+else:
+  # just so we hit the time-based check in validate_time_since_last_export
+  src_files = []
+
+os.makedirs(takeout_dst_root, exist_ok=True)
 
 dest_ts = validate_and_get_timestamp(src_files)
 
