@@ -8,7 +8,7 @@ This script has two purposes:
 
 1. Unzip the exported zip files from Google Drive into a non-Drive location, so
    that an incremental backup can pickup just the differences.  The source files
-   can then be deleted from Google Drive to free up space.
+   are then be deleted from Google Drive to free up space.
 2. Report an error if its been more than 2 months since the last export.  This
    ensures I won't forget to re-start the export process after it expires.
 
